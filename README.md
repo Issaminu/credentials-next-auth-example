@@ -1,34 +1,47 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+![header](/public/README-Image.png)
+
+# Authentication with Credentials NextAuth.js Example
+
+This is an example of of using [NextAuth.js](https://next-auth.js.org/) Credentials provider to implement sign-up and sign-in using email and password.
+The intent of this example is to show the authentication process, including account creation, sign-in, sign-out and saving user session to the browser with Recoil and Recoil Persist.
 
 ## Getting Started
 
-First, run the development server:
+### Main dependencies
 
-```bash
-npm run dev
-# or
-yarn dev
+- [Prisma](https://www.prisma.io/)
+- [NextAuth.js](https://next-auth.js.org/)
+- [TailwindCSS](https://tailwindcss.com/)
+- [Recoil](https://recoiljs.org/)
+- [Recoil-Persist](https://www.npmjs.com/package/recoil-persist)
+
+### Setting Up Your Environment
+
+Change the name of `.env.local.example` to `.env.local`, and fill in the following values:
+
+```
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=somereallysecretsecret
+DATABASEURL=YourDatabaseURL
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Note: If you're planning to use a database service other than MySQL, make sure to update `datasource provider` in `prisma/schema.prisma`.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Running the Example
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+You can use the following commands to run the example:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```
+npm install
+npx prisma generate
+npm run dev
 
-## Learn More
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Live Demo
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+A live demo of the example can be found [here](https://credentials-next-auth-example.vercel.app/).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+ISC
