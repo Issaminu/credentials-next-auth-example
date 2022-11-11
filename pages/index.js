@@ -4,7 +4,7 @@ import { useEffect } from "react";
 export const Index = () => {
   const router = useRouter();
   useEffect(() => {
-    router.push("/login");
+    router.push("/dashboard");
   });
   return <></>;
 };

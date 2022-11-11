@@ -9,9 +9,6 @@ export const userState = atom({
     id: 0,
     email: "",
     name: "",
-    image: "/default.jpg",
-    accountStatus: "",
-    notificationCount: 0,
   },
   effects_UNSTABLE: [persistAtom],
 });

@@ -1,31 +1,41 @@
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import Image from "next/image";
+import logo from "../public/next-auth-logo.png";
 import Link from "next/link";
+import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import { ExclamationCircleIcon } from "@heroicons/react/solid";
 import { userState } from "../store/atoms";
 import { useRecoilState } from "recoil";
 import LoadingBar from "react-top-loading-bar";
-import logo from "../public/next-auth-logo.png";
 
-const error = "Wrong email or password";
-
-export default function Login(props) {
-  const router = useRouter();
+export function Signup(props) {
+  const { data: session, status } = useSession();
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [isNameValid, setIsNameValid] = useState(true);
   const [isPasswordValid, setIsPasswordValid] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [user, setUser] = useRecoilState(userState);
-  const { data: session, status } = useSession();
+  const router = useRouter();
   const ref = useRef(null);
+  let tempUser;
+
   useEffect(() => {
+    setIsNameValid(true);
     setIsEmailValid(true);
     setIsPasswordValid(true);
     if (session) {
-      setUser(session.user);
+      tempUser = {
+        ...session.user,
+      };
+      setUser(tempUser);
       router.push("/dashboard");
     }
   }, [session]);
@@ -33,19 +43,42 @@ export default function Login(props) {
     e.preventDefault();
     setIsLoading(true);
     ref.current.staticStart();
-    await signIn("credentials", {
-      redirect: false,
-      email: email,
-      password: password,
-      callbackUrl: `${window.location.origin}`,
-    }).then(async (res) => {
-      ref.current.complete();
-      if (!res.ok) {
-        setIsEmailValid(false);
-        setIsPasswordValid(false);
-        setIsLoading(false);
-      }
-    });
+    axios
+      .post("/api/auth/signup", {
+        email: email,
+        name: name,
+        password: password,
+      })
+      .then(async (res) => {
+        ref.current.complete();
+        if (res.status === 200 && res.data.status === "success") {
+          await signIn("credentials", {
+            redirect: false,
+            email: email,
+            password: password,
+            callbackUrl: `${window.location.origin}`,
+          });
+        }
+        if (!res.data.ok) {
+          setIsLoading(false);
+          if (
+            res.data.errorType == "email_not_valid" ||
+            res.data.errorType == "users_email_key"
+          ) {
+            setIsEmailValid(false);
+            setEmailError(res.data.error);
+          } else if (
+            res.data.errorType == "name_not_alphabet" ||
+            res.data.errorType == "name_length"
+          ) {
+            setIsNameValid(false);
+            setNameError(res.data.error);
+          } else if (res.data.errorType == "password_length") {
+            setIsPasswordValid(false);
+            setPasswordError(res.data.error);
+          }
+        }
+      });
   };
   if (status == "loading") return null;
   if (!session) {
@@ -68,7 +101,6 @@ export default function Login(props) {
                     className="mx-auto h-12 w-auto"
                     src={logo}
                     alt="Next Auth's logo"
-                    loading="eager"
                   />
                 </div>
                 <h2
@@ -78,10 +110,69 @@ export default function Login(props) {
                   Welcome!
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-900">
-                  Please sign in to your account
+                  Please sign up with your email below
                 </p>
               </div>
-              <form className="space-y-4" onSubmit={(e) => handleSubmit(e)}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                <div>
+                  {isNameValid ? (
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Full name
+                      </label>
+                      <div className="mt-1">
+                        <input
+                          id="name"
+                          name="name"
+                          type="text"
+                          onChange={(e) => {
+                            setName(e.target.value);
+                          }}
+                          autoComplete="name"
+                          required
+                          autoFocus
+                          className="shadow-sm focus:ring-cyan-500 focus:border-cyan-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Full name
+                      </label>
+                      <div className="mt-1 relative rounded-md shadow-sm">
+                        <input
+                          id="name"
+                          name="name"
+                          type="text"
+                          onChange={(e) => {
+                            setName(e.target.value);
+                          }}
+                          required
+                          autoComplete="name"
+                          className="block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                          aria-invalid="true"
+                          aria-describedby="name-error"
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <ExclamationCircleIcon
+                            className="h-5 w-5 text-red-500"
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm text-red-600" id="name-error">
+                        {nameError}
+                      </p>
+                    </div>
+                  )}
+                </div>
                 <div>
                   {isEmailValid ? (
                     <div>
@@ -101,7 +192,6 @@ export default function Login(props) {
                           }}
                           autoComplete="email"
                           required
-                          autoFocus
                           className="shadow-sm focus:ring-cyan-500 focus:border-cyan-500 block w-full sm:text-sm border-gray-300 rounded-md"
                         />
                       </div>
@@ -128,7 +218,16 @@ export default function Login(props) {
                           aria-invalid="true"
                           aria-describedby="email-error"
                         />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <ExclamationCircleIcon
+                            className="h-5 w-5 text-red-500"
+                            aria-hidden="true"
+                          />
+                        </div>
                       </div>
+                      <p className="mt-2 text-sm text-red-600" id="email-error">
+                        {emailError}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -177,23 +276,23 @@ export default function Login(props) {
                           aria-invalid="true"
                           aria-describedby="password-error"
                         />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <ExclamationCircleIcon
+                            className="h-5 w-5 text-red-500"
+                            aria-hidden="true"
+                          />
+                        </div>
                       </div>
-                      <div className="flex flex-row">
-                        <ExclamationCircleIcon
-                          className="h-4 w-4 mt-2 mr-2 text-red-500"
-                          aria-hidden="true"
-                        />
-                        <p
-                          className="mt-2 text-xs text-red-600"
-                          id="password-error"
-                        >
-                          {error}
-                        </p>
-                      </div>
+                      <p
+                        className="mt-2 text-sm text-red-600"
+                        id="password-error"
+                      >
+                        {passwordError}
+                      </p>
                     </div>
                   )}
                 </div>
-                <div className="space-y-5">
+                <div className="space-y-6">
                   <div className="flex justify-between">
                     <div className="flex items-center">
                       <input
@@ -224,14 +323,14 @@ export default function Login(props) {
                       disabled={isLoading}
                       className="w-full h-11 flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-cyan-700 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <div className="flex items-center h-full">Sign in</div>
+                      <div className="flex items-center h-full">Sign up</div>
                     </button>
                   </div>
                   <div className="text-sm">
-                    Don&apos;t have an account? &nbsp;
-                    <Link href="/signup">
+                    Already have an account? &nbsp;
+                    <Link href="/login">
                       <span className="font-medium cursor-pointer text-cyan-600 hover:text-cyan-500">
-                        Sign up
+                        Sign in
                       </span>
                     </Link>
                   </div>
@@ -244,3 +343,5 @@ export default function Login(props) {
     );
   }
 }
+
+export default Signup;
