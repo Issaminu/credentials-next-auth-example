@@ -17,6 +17,12 @@ The intent of this example is to show the authentication process, including acco
 
 ### Setting Up Your Environment
 
+Clone the repository:
+
+```
+git clone https://github.com/Issam-Boubcher/credentials-next-auth-example.git
+```
+
 Change the name of `.env.local.example` to `.env.local`, and fill in the following values:
 
 ```
