@@ -35,7 +35,6 @@ You can use the following commands to run the example:
 npm install
 npx prisma generate
 npm run dev
-
 ```
 
 ## Live Demo
